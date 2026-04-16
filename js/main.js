@@ -114,18 +114,21 @@ contactForm.addEventListener('submit', (e) => {
 
     // Simple validation
     if (!data.name || !data.email || !data.message) {
-        showNotification('Please fill in all required fields.', 'error');
+        showNotification(langManager.getTranslation('notification_error'), 'error');
         return;
     }
 
     // Simulate form submission
     const submitBtn = contactForm.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    // Show loading state based on language
+    const loadingText = langManager.getCurrentLanguage() === 'mr' ? 'पाठवत आहे...' : 'Sending...';
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
     submitBtn.disabled = true;
 
     setTimeout(() => {
-        showNotification('Thank you! Your message has been sent successfully.', 'success');
+        showNotification(langManager.getTranslation('notification_success'), 'success');
         contactForm.reset();
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -133,7 +136,7 @@ contactForm.addEventListener('submit', (e) => {
 });
 
 // ========================================
-// Notification System
+// Notification System (Language Aware)
 // ========================================
 function showNotification(message, type = 'success') {
     // Remove existing notification
@@ -154,7 +157,7 @@ function showNotification(message, type = 'success') {
     notification.style.cssText = `
         position: fixed;
         top: 100px;
-        right: 20px;
+        left: 20px;
         padding: 15px 25px;
         background: ${type === 'success' ? '#10b981' : '#ef4444'};
         color: white;
@@ -164,30 +167,35 @@ function showNotification(message, type = 'success') {
         gap: 10px;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         z-index: 9999;
-        animation: slideIn 0.3s ease;
+        animation: slideInLeft 0.3s ease;
+        font-family: ${langManager.getCurrentLanguage() === 'mr' ? "'Noto Sans Devanagari', 'Poppins', sans-serif" : "'Poppins', sans-serif"};
+        max-width: 350px;
     `;
 
     // Add animation keyframes
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+    if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideInLeft {
+                from {
+                    transform: translateX(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    document.head.appendChild(style);
+        `;
+        document.head.appendChild(style);
+    }
 
     document.body.appendChild(notification);
 
     // Remove notification after 4 seconds
     setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease reverse';
+        notification.style.animation = 'slideInLeft 0.3s ease reverse';
         setTimeout(() => {
             notification.remove();
         }, 300);
@@ -214,8 +222,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// ========================================
-// Intersection Observer for
 // ========================================
 // Intersection Observer for Animations
 // ========================================
@@ -300,24 +306,6 @@ if (heroStats) {
 }
 
 // ========================================
-// Typing Effect for Hero (Optional)
-// ========================================
-function typeWriter(element, text, speed = 50) {
-    let i = 0;
-    element.textContent = '';
-    
-    function type() {
-        if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
-        }
-    }
-    
-    type();
-}
-
-// ========================================
 // Parallax Effect for Hero Background
 // ========================================
 window.addEventListener('scroll', () => {
@@ -346,7 +334,7 @@ formInputs.forEach(input => {
 });
 
 // ========================================
-// Newsletter Form Submission
+// Newsletter Form Submission (Language Aware)
 // ========================================
 const newsletterForm = document.querySelector('.newsletter-form');
 if (newsletterForm) {
@@ -355,16 +343,16 @@ if (newsletterForm) {
         const emailInput = newsletterForm.querySelector('input[type="email"]');
         
         if (emailInput.value) {
-            showNotification('Thank you for subscribing to our newsletter!', 'success');
+            showNotification(langManager.getTranslation('notification_subscribe'), 'success');
             emailInput.value = '';
         } else {
-            showNotification('Please enter a valid email address.', 'error');
+            showNotification(langManager.getTranslation('notification_email_error'), 'error');
         }
     });
 }
 
 // ========================================
-// Preloader (Optional - Add if needed)
+// Preloader
 // ========================================
 window.addEventListener('load', () => {
     const preloader = document.querySelector('.preloader');
@@ -415,7 +403,7 @@ hamburgerStyles.textContent = `
 document.head.appendChild(hamburgerStyles);
 
 // ========================================
-// Scroll Progress Indicator (Optional)
+// Scroll Progress Indicator
 // ========================================
 function createScrollProgress() {
     const progressBar = document.createElement('div');
@@ -491,7 +479,44 @@ window.addEventListener('resize', () => {
 });
 
 // ========================================
+// Get Quote Button (Navigation CTA)
+// ========================================
+const navCta = document.querySelector('.nav-cta');
+if (navCta) {
+    navCta.addEventListener('click', () => {
+        const contactSection = document.querySelector('#contact');
+        if (contactSection) {
+            const headerOffset = 80;
+            const elementPosition = contactSection.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    });
+}
+
+// ========================================
 // Console Welcome Message
 // ========================================
 console.log('%c BuildPro Construction Demo ', 'background: #f59e0b; color: white; font-size: 16px; padding: 10px;');
-console.log('%c Created for demonstration purposes ', 'color: #64748b; font-size: 12px;');
+console.log('%c With English/Marathi Language Support ', 'color: #64748b; font-size: 12px;');
+
+// ========================================
+// Keyboard Navigation Support
+// ========================================
+document.addEventListener('keydown', (e) => {
+    // Press 'L' to toggle language
+    if (e.key === 'l' || e.key === 'L') {
+        const currentLang = langManager.getCurrentLanguage();
+        const newLang = currentLang === 'en' ? 'mr' : 'en';
+        
+        // Simulate button click
+        const langBtn = document.querySelector(`.lang-btn[data-lang="${newLang}"]`);
+        if (langBtn) {
+            langBtn.click();
+        }
+    }
+});
