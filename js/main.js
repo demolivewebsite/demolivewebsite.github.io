@@ -216,3 +216,282 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // ========================================
 // Intersection Observer for
+// ========================================
+// Intersection Observer for Animations
+// ========================================
+const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+};
+
+const animateOnScroll = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('animate');
+            animateOnScroll.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+// Elements to animate
+const animateElements = document.querySelectorAll(
+    '.service-card, .project-card, .testimonial-card, .about-content, .about-image, .why-item, .contact-item'
+);
+
+animateElements.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    animateOnScroll.observe(el);
+});
+
+// Add CSS for animated elements
+const animationStyles = document.createElement('style');
+animationStyles.textContent = `
+    .animate {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+`;
+document.head.appendChild(animationStyles);
+
+// ========================================
+// Counter Animation for Stats
+// ========================================
+function animateCounter(element, target, duration = 2000) {
+    let start = 0;
+    const increment = target / (duration / 16);
+    
+    const updateCounter = () => {
+        start += increment;
+        if (start < target) {
+            element.textContent = Math.floor(start) + (element.dataset.suffix || '');
+            requestAnimationFrame(updateCounter);
+        } else {
+            element.textContent = target + (element.dataset.suffix || '');
+        }
+    };
+    
+    updateCounter();
+}
+
+// Observe stats section
+const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const stats = entry.target.querySelectorAll('.stat h3');
+            stats.forEach(stat => {
+                const text = stat.textContent;
+                const number = parseInt(text);
+                const suffix = text.replace(/[0-9]/g, '');
+                stat.dataset.suffix = suffix;
+                stat.textContent = '0' + suffix;
+                animateCounter(stat, number, 2000);
+            });
+            statsObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.5 });
+
+const heroStats = document.querySelector('.hero-stats');
+if (heroStats) {
+    statsObserver.observe(heroStats);
+}
+
+// ========================================
+// Typing Effect for Hero (Optional)
+// ========================================
+function typeWriter(element, text, speed = 50) {
+    let i = 0;
+    element.textContent = '';
+    
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+    
+    type();
+}
+
+// ========================================
+// Parallax Effect for Hero Background
+// ========================================
+window.addEventListener('scroll', () => {
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        const scrolled = window.pageYOffset;
+        hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
+    }
+});
+
+// ========================================
+// Form Input Animation
+// ========================================
+const formInputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
+
+formInputs.forEach(input => {
+    input.addEventListener('focus', () => {
+        input.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', () => {
+        if (!input.value) {
+            input.parentElement.classList.remove('focused');
+        }
+    });
+});
+
+// ========================================
+// Newsletter Form Submission
+// ========================================
+const newsletterForm = document.querySelector('.newsletter-form');
+if (newsletterForm) {
+    newsletterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = newsletterForm.querySelector('input[type="email"]');
+        
+        if (emailInput.value) {
+            showNotification('Thank you for subscribing to our newsletter!', 'success');
+            emailInput.value = '';
+        } else {
+            showNotification('Please enter a valid email address.', 'error');
+        }
+    });
+}
+
+// ========================================
+// Preloader (Optional - Add if needed)
+// ========================================
+window.addEventListener('load', () => {
+    const preloader = document.querySelector('.preloader');
+    if (preloader) {
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+            preloader.style.display = 'none';
+        }, 500);
+    }
+    
+    // Trigger initial animations
+    document.body.classList.add('loaded');
+});
+
+// ========================================
+// Image Lazy Loading
+// ========================================
+const lazyImages = document.querySelectorAll('img[data-src]');
+
+const imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+            imageObserver.unobserve(img);
+        }
+    });
+}, observerOptions);
+
+lazyImages.forEach(img => imageObserver.observe(img));
+
+// ========================================
+// Hamburger Animation
+// ========================================
+const hamburgerStyles = document.createElement('style');
+hamburgerStyles.textContent = `
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+`;
+document.head.appendChild(hamburgerStyles);
+
+// ========================================
+// Scroll Progress Indicator (Optional)
+// ========================================
+function createScrollProgress() {
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    progressBar.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+        z-index: 9999;
+        transition: width 0.1s ease;
+        width: 0%;
+    `;
+    document.body.appendChild(progressBar);
+    
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        progressBar.style.width = scrollPercent + '%';
+    });
+}
+
+createScrollProgress();
+
+// ========================================
+// Project Card Hover Effects
+// ========================================
+projectCards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+        card.style.zIndex = '10';
+    });
+    
+    card.addEventListener('mouseleave', () => {
+        card.style.zIndex = '1';
+    });
+});
+
+// ========================================
+// Testimonial Slider (Simple Auto-scroll)
+// ========================================
+let currentTestimonial = 0;
+const testimonialCards = document.querySelectorAll('.testimonial-card');
+
+function autoScrollTestimonials() {
+    if (window.innerWidth <= 768 && testimonialCards.length > 1) {
+        testimonialCards.forEach((card, index) => {
+            card.style.display = index === currentTestimonial ? 'block' : 'none';
+        });
+        
+        currentTestimonial = (currentTestimonial + 1) % testimonialCards.length;
+    } else {
+        testimonialCards.forEach(card => {
+            card.style.display = 'block';
+        });
+    }
+}
+
+// Run on mobile
+if (window.innerWidth <= 768) {
+    setInterval(autoScrollTestimonials, 5000);
+    autoScrollTestimonials();
+}
+
+// Handle resize
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+        testimonialCards.forEach(card => {
+            card.style.display = 'block';
+        });
+    }
+});
+
+// ========================================
+// Console Welcome Message
+// ========================================
+console.log('%c BuildPro Construction Demo ', 'background: #f59e0b; color: white; font-size: 16px; padding: 10px;');
+console.log('%c Created for demonstration purposes ', 'color: #64748b; font-size: 12px;');
